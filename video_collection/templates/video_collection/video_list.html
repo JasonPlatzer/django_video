@@ -1,0 +1,39 @@
+{% extends 'video_collection/base.html' %}
+
+{% block content %}
+
+<h2>Video List</h2>
+
+<h3>Search Vidoes</h3>
+
+<form method="GET" action="{% url 'video_list' %}">
+    {{ search_form }}
+    <!-- search form from views.py-->
+    <button type="submit">Search</button>
+</form>
+
+<a href="{% url 'video_list' %}">
+    <button>Clear Search</button>
+</a>
+
+<h3>{{ videos|length }} video{{ videos|length|pluralize}}</h3>
+<!-- show length of the videos in list that match search-->
+<!-- pluralize adds s if needed checks videos length-->
+
+{% for video in videos %}
+
+    <div>
+        <h3>{{ video.name }}</h3>
+        <p>{{ video.notes }}</p>
+        <iframe width="420" height="315" src="https://youtube.com/embed/{{video.video_id}}"></iframe>
+        <p><a href="{{video.url}}">{{ video.url }}</a></p>
+        <a href="{% url 'details' %}">Details</a>
+    </div>
+
+{% empty %}
+    <p>No videos</p>
+
+{% endfor %}
+<!--videos from views.py-->
+
+{% endblock %}
