@@ -2,8 +2,12 @@
 
 {% block content %}
 
-{{ video_page }}
-
+<p>name = {{ video_page.name }}</p>
+<p>url = {{ video_page.url}}</p>
+{% if vidoe_page.notes %}
+    <p>notes = {{ video_page.notes}}</p>
+{% endif%}
+<p>id = {{ video_page.video_id}}</p>
 
 {{ empty}}
     <p>No video</p>
