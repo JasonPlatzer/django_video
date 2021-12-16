@@ -12,31 +12,40 @@ class Video(models.Model):
     # overriding the save method
 
     def save(self, *args, **kwargs):
-        #if not self.url.startswith('https://www.youtube.com/watch'):
-            #raise ValidationError('Not a youtube url')
-        # extracting id from youtube url
-        url_components = parse.urlparse(self.url)
+        try:  # add try except to catch possible ValueError
+            # extracting id from youtube url
+            url_components = parse.urlparse(self.url)
+            
+            if url_components.scheme != 'https':
+                # checks that https is part of url_components
+                raise ValidationError(f'Not a youtube url {self.url}')
+            if url_components.netloc != 'www.youtube.com':
+                # checks that net location is youtube
+                raise ValidationError(f'Not a youtube url {self.url}')
+            if url_components.path != '/watch':
+                raise ValidationError(f'Not a youtube url {self.url}')
+            
+            query_string = url_components.query
+            if not query_string:
+                raise ValidationError(f'Invalid youtube url {self.url}')
+            parameters = parse.parse_qs(query_string, strict_parsing=True)
+            # makes a dictionary out of list from id- the v= from video
+            v_parameters_list = parameters.get('v')
+            # will return none if key not found
+            if not v_parameters_list:
+                # if not None or empty
+                raise ValidationError(f'Invalid youtube url, missing parameters {self.url}')
+            self.video_id = v_parameters_list[0]
+        except ValueError as e:
+            # Catch the ValueError that may be thrown from 
+            # parse.urlparse, if the url is not a valid url,
+            # then throw a ValidationError. All invalid data 
+            # in the model - missing name for example - 
+            # will cause ValidationError, so it's easy for the 
+            # view to check for any and all validation errors, 
+            # they all cause the same type of exception. 
+            raise ValidationError(f'Unable to parse URL {self.url}') from e
         
-        if url_components.scheme != 'https':
-            # checks that https is part of url_components
-            raise ValidationError(f'Not a youtube url {self.url}')
-        if url_components.netloc != 'www.youtube.com':
-            # checks that net location is youtube
-            raise ValidationError(f'Not a youtube url {self.url}')
-        if url_components.path != '/watch':
-            raise ValidationError(f'Not a youtube url {self.url}')
-        
-        query_string = url_components.query
-        if not query_string:
-            raise ValidationError(f'Invalid youtube url {self.url}')
-        parameters = parse.parse_qs(query_string, strict_parsing=True)
-        # makes a dictionary out of list from id- the v= from video
-        v_parameters_list = parameters.get('v')
-        # will return none if key not found
-        if not v_parameters_list:
-            # if not None or empty
-            raise ValidationError(f'Invalid youtube url, missing parameters {self.url}')
-        self.video_id = v_parameters_list[0]
         super().save(*args, **kwargs)
         # calling django save method to save
 
